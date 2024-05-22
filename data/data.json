@@ -1,0 +1,36 @@
+{
+  "config": {
+    "download": {
+      "path": ".\\trainers\\",
+      "extract": true
+    },
+    "cache": {
+      "detail_image": true
+    },
+    "runtime": {
+      "detail_img": ".\\img_cache\\image.jpg",
+      "blank_img": ".\\resource\\anon.jpg"
+    },
+    "library": {
+      "filter": "VERIFIED_ONLY"
+    }
+  },
+  "files": {
+    "downloaded": [
+      [
+        "DEMO_TRAINER_1",
+        "T1.EXE",
+        "2024-5-21",
+        "[URL1]",
+        "VERIFIED"
+      ],
+      [
+        "DEMO_TRAINER_2",
+        "T2.EXE",
+        "2024-5-23",
+        "[URL2]",
+        "VERIFIED"
+      ]
+    ]
+  }
+}
