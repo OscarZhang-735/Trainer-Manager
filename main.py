@@ -49,6 +49,7 @@ class SearchWidget(QFrame):
         self.name = None
         self.row = None
         self.config = utils.Data.json_read("data\\data.json")["config"]
+        self.data = utils.Data.json_read("./data/data.json")
         self.setObjectName("Search")
         self.vBoxLayoutMain = QVBoxLayout(self)
         self.vBoxLayoutMiddle = QVBoxLayout(self)
@@ -165,7 +166,7 @@ class SearchWidget(QFrame):
         self.detailLabel.setFont(STANDARD_FONT)
         self.detailImage.setImage(pic)
         self.detailImage.setFixedSize(250, 250)
-        self.verify_download()
+        self.check_download(name)
         self.resultTable.resizeColumnsToContents()
 
     def download_file(self):
@@ -249,7 +250,7 @@ class SearchWidget(QFrame):
         webbrowser.open(link)
 
     def verify_download(self):
-        data = utils.Data.json_read("./data/data.json")
+        data = self.data
         name = self.detail_result[0]
         print("VRF: NAME:", name)
         for original_file in os.listdir(self.config["download"]["path"]):
@@ -258,11 +259,21 @@ class SearchWidget(QFrame):
             if name in file:
                 self.downloadButton.setIcon(FIF.COMPLETED)
                 self.downloadButton.setText("Downloaded")
+                self.downloadButton.setDisabled(True)
                 if self.config["cache"]["detail_image"]:
-                    pic_name = "./img_cache/" + self.resultTable.item(self.row, 0).text() + "-image.jpg"
-                    register = [self.resultTable.item(self.row, 0).text(),
-                                data["config"]["download"]["path"] + original_file,
-                                time.strftime('%Y-%m-%d', time.localtime()), pic_name, "VERIFIED"]
+                    pic_name = "./img_cache/" + utils.File.string_valid(
+                        self.resultTable.item(self.row, 0).text()) + "-image.jpg"
+                    if self.query_result[self.row][-1] == "COMMON":
+                        register = [self.resultTable.item(self.row, 0).text(),
+                                    data["config"]["download"]["path"] + original_file,
+                                    time.strftime('%Y-%m-%d', time.localtime()), pic_name, "COMMON",
+                                    self.query_result[self.row][1],
+                                    "VERIFIED"]
+                    else:
+                        register = [self.resultTable.item(self.row, 0).text(),
+                                    data["config"]["download"]["path"] + original_file,
+                                    time.strftime('%Y-%m-%d', time.localtime()), pic_name, "ARCHIVED", "NONE",
+                                    "VERIFIED"]
                     try:
                         os.rename("./img_cache/image.jpg", pic_name)
                     except FileExistsError:
@@ -273,6 +284,19 @@ class SearchWidget(QFrame):
                 return None
         self.downloadButton.setIcon(FIF.DOWNLOAD)
         self.downloadButton.setText("Download")
+        self.downloadButton.setDisabled(False)
+
+    def check_download(self, name):
+        for downloaded in self.data["files"]["downloaded"]:
+            if name == downloaded[0]:
+                self.downloadButton.setIcon(FIF.COMPLETED)
+                self.downloadButton.setText("Downloaded")
+                self.downloadButton.setDisabled(True)
+                return True
+        self.downloadButton.setIcon(FIF.DOWNLOAD)
+        self.downloadButton.setText("Download")
+        self.downloadButton.setDisabled(False)
+        return False
 
 
 class LibraryWidget(QFrame):
@@ -301,8 +325,8 @@ class LibraryWidget(QFrame):
         self.searchButton.setText("Search")
 
         self.clearButton = PushButton(self)
-        self.clearButton.setIcon(FIF.CLOSE)
-        self.clearButton.setText("Clear")
+        self.clearButton.setIcon(FIF.UPDATE)
+        self.clearButton.setText("Refresh")
 
         self.resultLabel = BodyLabel(self)
         self.resultLabel.setText("")
@@ -334,7 +358,7 @@ class LibraryWidget(QFrame):
         self.deleteButton = PushButton("Delete", self)
         self.deleteButton.setIcon(FIF.CLOSE)
         self.updateButton = PushButton("Update", self)
-        self.updateButton.setIcon(FIF.UPDATE)
+        self.updateButton.setIcon(FIF.UP)
 
         self.hBoxLayoutTop.addWidget(self.searchLine, 1, Qt.AlignLeft)
         self.hBoxLayoutTop.addWidget(self.searchButton, 1, Qt.AlignLeft)
@@ -372,12 +396,18 @@ class LibraryWidget(QFrame):
         self.clearButton.clicked.connect(self.table_default)
         self.runButton.clicked.connect(self.run_trainer)
         self.deleteButton.clicked.connect(self.remove_file)
+        self.visitPageButton.clicked.connect(self.open_link)
         # self.resultTable.setVisible(False)
         self.table_default()
         self.noResultWidget.setVisible(False)
 
     def run_trainer(self):
         subprocess.run(self.current_exe, check=False, shell=True, close_fds=True, creationflags=0x00000008)
+
+    def open_link(self):
+        link = self.data["files"]["downloaded"][self.row][4]
+        if link != "NONE":
+            webbrowser.open(link)
 
     def remove_file(self):
         mbox = MessageBox("Warning", "Are you sure you want to delete this file? This operation is irreversible.", self)
@@ -436,6 +466,10 @@ class LibraryWidget(QFrame):
             pic.load(self.data["config"]["runtime"]["blank_img"])
             self.visitPageButton.setDisabled(True)
             self.updateButton.setDisabled(True)
+        if self.file_name_list[row][-3] != "COMMON":
+            self.visitPageButton.setDisabled(True)
+            self.updateButton.setDisabled(True)
+            content += "\n**This is an archived Trainer**"
         self.detailLabel.setText(content)
         self.detailLabel.setFont(STANDARD_FONT)
         self.detailImage.setImage(pic)
@@ -462,6 +496,14 @@ class LibraryWidget(QFrame):
                 item.setForeground(QBrush(Qt.gray))
             self.resultTable.setItem(row, 0, item)
         self.resultTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+
+class SettingWidget(QFrame):
+    pass
+
+
+class HelpingWidget(QFrame):
+    pass
 
 
 class AvatarWidget(NavigationWidget):
@@ -543,8 +585,8 @@ class Window(FramelessWindow):
         # create sub interface
         self.searchInterface = SearchWidget(self)
         self.libraryInterface = LibraryWidget(self)
-        self.videoInterface = Widget('Video Interface', self)
-        self.folderInterface = Widget('Folder Interface', self)
+        self.settingsInterface = Widget('Settings Interface', self)
+        self.helpingInterface = Widget('Help Interface', self)
         self.settingInterface = Widget('Setting Interface', self)
 
         # initialize layout
@@ -570,10 +612,10 @@ class Window(FramelessWindow):
         # self.navigationInterface.setAcrylicEnabled(True)
         self.addSubInterface(self.searchInterface, FIF.SEARCH, 'Search')
         self.addSubInterface(self.libraryInterface, FIF.APPLICATION, 'My Trainers')
-        self.addSubInterface(self.videoInterface, FIF.SETTING, 'Settings')
         self.navigationInterface.addSeparator()
+        # self.addSubInterface(self.settingsInterface, FIF.SETTING, 'Settings')
         # add navigation items to scroll area
-        self.addSubInterface(self.folderInterface, FIF.FOLDER, 'Folder library', NavigationItemPosition.SCROLL)
+        self.addSubInterface(self.helpingInterface, FIF.HELP, 'Help', NavigationItemPosition.SCROLL)
         # for i in range(1, 21):
         #     self.navigationInterface.addItem(
         #         f'folder{i}',
@@ -655,7 +697,7 @@ class Window(FramelessWindow):
 def exit_handler():
     try:
         os.remove("./img_cache/image.jpg")
-    except FileExistsError:
+    except FileNotFoundError:
         pass
 
 

@@ -21,14 +21,16 @@
         "DEMO_TRAINER_1",
         "T1.EXE",
         "2024-5-21",
-        "[URL1]",
+        "./resource/anon.jpg",
+        "NONE",
         "VERIFIED"
       ],
       [
         "DEMO_TRAINER_2",
         "T2.EXE",
         "2024-5-23",
-        "[URL2]",
+        "./resource/anon.jpg",
+        "NONE",
         "VERIFIED"
       ]
     ]

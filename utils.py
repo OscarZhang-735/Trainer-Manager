@@ -56,3 +56,11 @@ class File:
         downloaded = Data.json_read("data\\data.json")["files"]["downloaded"]
         print(files)
         print(downloaded)
+
+    @staticmethod
+    def string_valid(string):
+        invalid = ["\\", "/", ":", "*", "?", '"', "<", ">", "|"]
+        for char in string:
+            if char in invalid:
+                string = string.replace(char, " ")
+        return string
