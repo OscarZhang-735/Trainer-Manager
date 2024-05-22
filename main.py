@@ -37,7 +37,6 @@ class Widget(QFrame):
         self.label.setAlignment(Qt.AlignCenter)
         self.hBoxLayout = QHBoxLayout(self)
         self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
-
         # leave some space for title bar
         self.hBoxLayout.setContentsMargins(0, 32, 0, 0)
 
@@ -500,7 +499,22 @@ class LibraryWidget(QFrame):
 
 
 class SettingWidget(QFrame):
-    pass
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        # self.resize(400, 400)
+        self.config = utils.Data.json_read("data\\data.json")["config"]
+        # self.data = utils.Data.json_read("./data/data.json")
+        self.setObjectName("Setting")
+        self.vBoxLayoutMain = QVBoxLayout(self)
+        self.hBoxLayoutTop = QHBoxLayout(self)
+        self.vBoxLayoutMain.setContentsMargins(30, 60, 30, 50)
+        self.vBoxLayoutMain.setSpacing(30)
+        self.hBoxLayoutTop.setSpacing(20)
+        self.title_label = QLabel("Settings", self)
+        self.title_label.setFont(STANDARD_HUGE_FONT)
+        self.horiz_seperator_1 = HorizontalSeparator(self)
+        self.vBoxLayoutMain.addWidget(self.title_label)
+        self.vBoxLayoutMain.addWidget(self.horiz_seperator_1)
 
 
 class HelpingWidget(QFrame):
@@ -586,10 +600,8 @@ class Window(FramelessWindow):
         # create sub interface
         self.searchInterface = SearchWidget(self)
         self.libraryInterface = LibraryWidget(self)
-        self.settingsInterface = Widget('Settings Interface', self)
+        self.settingInterface = SettingWidget(self)
         self.helpingInterface = Widget('Help Interface', self)
-        self.settingInterface = Widget('Setting Interface', self)
-
         # initialize layout
         self.initLayout()
 
@@ -617,14 +629,6 @@ class Window(FramelessWindow):
         # self.addSubInterface(self.settingsInterface, FIF.SETTING, 'Settings')
         # add navigation items to scroll area
         self.addSubInterface(self.helpingInterface, FIF.HELP, 'Help', NavigationItemPosition.SCROLL)
-        # for i in range(1, 21):
-        #     self.navigationInterface.addItem(
-        #         f'folder{i}',
-        #         FIF.FOLDER,
-        #         f'Folder {i}',
-        #         lambda: print('Folder clicked'),
-        #         position=NavigationItemPosition.SCROLL
-        #     )
 
         # add custom widget to bottom
         self.navigationInterface.addWidget(
@@ -651,8 +655,8 @@ class Window(FramelessWindow):
         self.setWindowTitle('Trainer Manager')
         self.titleBar.setAttribute(Qt.WA_StyledBackground)
         desktop = QApplication.desktop().availableGeometry()
-        w, h = desktop.width(), desktop.height()
-        self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
+        width, height = desktop.width(), desktop.height()
+        self.move(width // 2 - self.width() // 2, height // 2 - self.height() // 2)
         self.setQss()
 
     def addSubInterface(self, interface, icon, text: str, position=NavigationItemPosition.TOP):
