@@ -299,6 +299,7 @@ class SearchWidget(QFrame):
         return False
 
 
+# Library StackedWidget
 class LibraryWidget(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -649,11 +650,9 @@ class Window(FramelessWindow):
         self.setWindowIcon(QIcon('resource/iconC.png'))
         self.setWindowTitle('Trainer Manager')
         self.titleBar.setAttribute(Qt.WA_StyledBackground)
-
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
-
         self.setQss()
 
     def addSubInterface(self, interface, icon, text: str, position=NavigationItemPosition.TOP):
