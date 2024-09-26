@@ -1,5 +1,9 @@
+# coding:utf-8
 import requests
 from lxml import etree
+from bs4 import BeautifulSoup as bs
+
+import utils
 
 BLANK_IMG = "BLANK_IMG"
 
@@ -12,8 +16,16 @@ class Spider:
                    "Accept-Language": "en-us",
                    "Connection": "keep-alive",
                    "Accept-Charset": "GB2312,utf-8;q=0.7,*;q=0.7"}
-        r = requests.get(url, headers=headers, timeout=5)
+
+        try:
+            r = requests.get(url, headers=headers, timeout=5)
+        except requests.exceptions.ProxyError:
+            utils.Help.warning("Connection failed",
+                               "Cannot establish connection with the server due to your proxy. \nTry turning it off.",
+                               True)
+            return "error"
         print(f"Request Generated! (GET: {url})")
+
         if r.status_code == 200:
             print("Server Response: 200-OK")
             return r.text
@@ -24,6 +36,30 @@ class Spider:
     @staticmethod
     def error():
         pass
+
+    class NekoNyanPatchSearch:
+        # Temporally abandoned
+        def __init__(self):
+            self.url = "https://patches.nekonyansoft.com/"
+            self.text = Spider.crawler(self.url)
+            if self.text != "error":
+                self.parser()
+            else:
+                Spider.error()
+
+        def parser(self):
+            soup = bs(self.text, 'html.parser')
+            print(self.text)
+            buttons = soup.find_all('button', onClick=True)
+            download_links = []
+            print("Links")
+            for button in buttons:
+                onClick_value = button['onClick']
+                if 'window.open' in onClick_value:
+                    link = onClick_value.split("'")[1]
+                    download_links.append(link)
+            for link in download_links:
+                print("link:", link)
 
     class Search:
         def __init__(self, keyword):

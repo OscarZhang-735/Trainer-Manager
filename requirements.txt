@@ -1,0 +1,5 @@
+PyQt5~=5.15.10
+keyboard~=0.13.5
+requests~=2.32.3
+rarfile~=4.2
+lxml~=5.2.2
